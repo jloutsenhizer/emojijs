@@ -235,13 +235,13 @@
             if (booleanObject == null) booleanObject = {};
             var ret = "";
             var oldIndex = 0;
-            text.replace(emojiRegex, function(match){
+            text.replace(emojiRegex, function(match){
                 var index = arguments[arguments.length - 2];
                 var fullString = arguments[arguments.length - 1];
                 ret += fullString.substring(oldIndex,index);
                 oldIndex = index + match.length;
                 var emojiId = emojiIDLookup[match];
-                ret += "<i class='emoji-" + emojiId + "'></i>";
+                ret += "";
                 booleanObject.set = true;
             });
             ret += text.substring(oldIndex);
@@ -254,18 +254,15 @@
     if (typeof jQuery !== "undefined"){
         (function($){
             function iterateNodesIn(node) {
-                var whitespace = /^\s*$/;
+                var nodes = [], whitespace = /^\s*$/;
 
                 var booleanObject = {set: false}
 
                 function iterateNodes(node) {
                     if (node.nodeType == 3) {
                         if (!whitespace.test(node.nodeValue)) {
-                            var result = emoji.parseEmoji($(node).text(),booleanObject);
-                            if (booleanObject.set){
-                                $(node).replaceWith(result);
-                                booleanObject.set = false;
-                            }
+                            nodes.push(node);
+
                         }
                     } else {
                         for (var i = 0, len = node.childNodes.length; i < len; ++i) {
@@ -275,6 +272,15 @@
                 }
 
                 iterateNodes(node);
+
+                $(nodes).each(function(){
+                    var result = emoji.parseEmoji($(this).text(),booleanObject);
+                    if (booleanObject.set){
+                        $(this).replaceWith(result);
+                        booleanObject.set = false;
+                    }
+
+                })
             }
 
 
