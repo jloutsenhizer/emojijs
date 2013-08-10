@@ -231,7 +231,8 @@
 
 
     window.emoji = {
-        parseEmoji: function(text){
+        parseEmoji: function(text,booleanObject){
+            if (booleanObject == null) booleanObject = {};
             var ret = "";
             var oldIndex = 0;
             text.replace(emojiRegex, function(match){
@@ -241,6 +242,7 @@
                 oldIndex = index + match.length;
                 var emojiId = emojiIDLookup[match];
                 ret += "<i class='emoji-" + emojiId + "'></i>";
+                booleanObject.set = true;
             });
             ret += text.substring(oldIndex);
 
@@ -251,31 +253,34 @@
 
     if (typeof jQuery !== "undefined"){
         (function($){
-            function getTextNodesIn(node) {
-                var textNodes = [], whitespace = /^\s*$/;
+            function iterateNodesIn(node) {
+                var whitespace = /^\s*$/;
 
-                function getTextNodes(node) {
+                var booleanObject = {set: false}
+
+                function iterateNodes(node) {
                     if (node.nodeType == 3) {
                         if (!whitespace.test(node.nodeValue)) {
-                            textNodes.push(node);
+                            var result = emoji.parseEmoji($(node).text(),booleanObject);
+                            if (booleanObject.set){
+                                $(node).replaceWith(result);
+                                booleanObject.set = false;
+                            }
                         }
                     } else {
                         for (var i = 0, len = node.childNodes.length; i < len; ++i) {
-                            getTextNodes(node.childNodes[i]);
+                            iterateNodes(node.childNodes[i]);
                         }
                     }
                 }
 
-                getTextNodes(node);
-                return $(textNodes);
+                iterateNodes(node);
             }
 
 
             $.fn.emojify = function(){
                 return this.each(function(){
-                    getTextNodesIn(this).each(function(){
-                        $(this).replaceWith(emoji.parseEmoji($(this).text()));
-                    });
+                    iterateNodesIn(this);
                 });
             }
 
