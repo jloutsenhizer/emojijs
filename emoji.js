@@ -241,7 +241,7 @@
                 ret += fullString.substring(oldIndex,index);
                 oldIndex = index + match.length;
                 var emojiId = emojiIDLookup[match];
-                ret += "";
+                ret += "<i class='emoji-" + emojiId + "'></i>";
                 booleanObject.set = true;
             });
             ret += text.substring(oldIndex);
