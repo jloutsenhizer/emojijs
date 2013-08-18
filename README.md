@@ -25,6 +25,12 @@ Later in your javascript code you can use the global emoji object to parse emoji
     
 And if you're using jquery then the jquery plugin will load and you can do the following:
 
-    $("#divWithEmojis").emojify();
+    jQuery("#divWithEmojis").emojify();
     
 This will parse the emojis in all text nodes found inside your selected elements.
+
+To emojify the whole page and all changes that happen to it use the following global jQuery function:
+
+    jQuery.emojifyWholePage();
+
+This requires [MutationObservers](https://developer.mozilla.org/en-US/docs/Web/API/MutationObserver) to be supported, you may want to use [this polyfill](https://github.com/Polymer/MutationObservers)

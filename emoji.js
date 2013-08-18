@@ -292,6 +292,17 @@
                 });
             }
 
+            $.emojifyWholePage = function(){
+                var observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        $(mutation.addedNodes).emojify();
+                    });
+                });
+                var config = { subtree: true, characterData: true, childList:true };
+                $('body').emojify();
+                observer.observe($("body")[0], config);
+            };
+
         })(jQuery);
     }
 })();
