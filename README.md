@@ -4,7 +4,7 @@ emojijs
 Emoji Rendering for the web
 
 
-emojijs is a javascript library that will allow you to easily render emojis on in your webapp.
+emojijs is a javascript library that will allow you to easily render emojis on in your webapp. The emojiset used is the [opensource Twitter emojis](https://blog.twitter.com/2014/open-sourcing-twitter-emoji-for-everyone)
 
 What are Emojis?
 ---------
@@ -22,6 +22,8 @@ Add emoji.js and emoji.css to your project and add the following in the `<head>`
 Later in your javascript code you can use the global emoji object to parse emoji into html
 
     emoji.parseEmoji(emojiString);
+    emoji.emojify(element);
+    emoji.emojifyWholePage();
     
 And if you're using jquery then the jquery plugin will load and you can do the following:
 
