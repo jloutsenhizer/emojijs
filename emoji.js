@@ -229,6 +229,40 @@
 
     emojiRegex = new RegExp(emojiRegex,"g");
 
+    function iterateNodesIn(node) {
+        var nodes = [], whitespace = /^\s*$/;
+
+        var booleanObject = {set: false};
+
+        function iterateNodes(node) {
+            if ((node.hasAttribute != null && node.hasAttribute("contentEditable")) || node.nodeName === "TEXTAREA" || node.nodeName === "INPUT")
+                return;
+            if (node.nodeType == 3) {
+                if (!whitespace.test(node.nodeValue)) {
+                    nodes.push(node);
+                }
+            } else {
+                for (var i = 0, len = node.childNodes.length; i < len; ++i) {
+                    iterateNodes(node.childNodes[i]);
+                }
+            }
+        }
+
+        iterateNodes(node);
+
+        for (var i = 0, li = nodes.length; i < li; i++) {
+            var result = emoji.parseEmoji(nodes[i].wholeText,booleanObject);
+            if (booleanObject.set){
+                var nodesToInsert = new DOMParser().parseFromString(result,"text/html").children[0].children[1].childNodes;
+                for (var j = 0, lj = nodesToInsert.length; j < lj; j++) {
+                    nodes[i].parentNode.insertBefore(nodesToInsert[0],nodes[i]);
+                }
+                nodes[i].remove();
+                booleanObject.set = false;
+            }
+        }
+    }
+
 
     window.emoji = {
         parseEmoji: function(text,booleanObject){
@@ -247,60 +281,48 @@
             ret += text.substring(oldIndex);
 
             return ret;
+        },
+        emojifyWholePage: function() {
+            function hook() {
+                var observer = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        for (var i = 0, li = mutation.addedNodes.length; i < li; i++) {
+                            emoji.emojify(mutation.addedNodes[i]);
+                        }
+                    });
+                });
+                var config = { subtree: true, characterData: true, childList:true };
+                var bodyElement = document.getElementsByTagName("body")[0];
+                emoji.emojify(bodyElement);
+                observer.observe(bodyElement, config);
+
+            }
+            var interval = setInterval(function(){
+                if (document.readyState == "complete"){
+                    clearInterval(interval);
+                    hook();
+                }
+            }, 10);
+        },
+        emojify: function(node) {
+            iterateNodesIn(node);
         }
     }
 
 
     if (typeof jQuery !== "undefined"){
         (function($){
-            function iterateNodesIn(node) {
-                var nodes = [], whitespace = /^\s*$/;
 
-                var booleanObject = {set: false}
-
-                function iterateNodes(node) {
-                    if ($(node).attr("contentEditable") != null || node.nodeName === "TEXTAREA" || node.nodeName === "INPUT")
-                        return;
-                    if (node.nodeType == 3) {
-                        if (!whitespace.test(node.nodeValue)) {
-                            nodes.push(node);
-
-                        }
-                    } else {
-                        for (var i = 0, len = node.childNodes.length; i < len; ++i) {
-                            iterateNodes(node.childNodes[i]);
-                        }
-                    }
-                }
-
-                iterateNodes(node);
-
-                $(nodes).each(function(){
-                    var result = emoji.parseEmoji($(this).text(),booleanObject);
-                    if (booleanObject.set){
-                        $(this).replaceWith(result);
-                        booleanObject.set = false;
-                    }
-
-                })
-            }
 
 
             $.fn.emojify = function(){
                 return this.each(function(){
-                    iterateNodesIn(this);
+                    emoji.emojify(this);
                 });
             }
 
             $.emojifyWholePage = function(){
-                var observer = new MutationObserver(function(mutations) {
-                    mutations.forEach(function(mutation) {
-                        $(mutation.addedNodes).emojify();
-                    });
-                });
-                var config = { subtree: true, characterData: true, childList:true };
-                $('body').emojify();
-                observer.observe($("body")[0], config);
+                emoji.emojifyWholePage();
             };
 
         })(jQuery);
